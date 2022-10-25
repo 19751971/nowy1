@@ -1,0 +1,35 @@
+<nav class="navbar navbar-dark bg-dark p-3">
+    <div class="d-flex col-12 col-md-3 col-lg-2 mb-2 flex-wrap
+    mb-lg-0 flex-md-nowrap justify-content-between">
+        <a href="/dashboard" class="navbar-brand">Home</a>
+    </div>
+    <div class="col-12 col-md-5 col-lg-8 align-items-center justify-content-md-end mt-3 mt-md-8 d-flex">
+        <div class="dropdown me-5">
+            <button class="btn btn-warning dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                Witaj, {{ fname }}
+            </button>
+            <ul class="dropdown-menu">
+                <li class="p-1">
+                    <a href="/dashboard" class="dropdown-item">
+                        <i class="bi bi-speedometer"></i>  Dashboard
+                    </a>
+                </li>
+                <li class="p-1">
+                    <a href="#" class="dropdown-item">
+                        <i class="bi bi-arrow-right-circle-fill"></i>  Dodaj kategorię
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="bi bi-balloon"></i>  Dodaj algorytm
+                    </a>
+                </li>
+                <li class="dropdown-divider"></li>
+                <li class="p-1">
+                    <a href="/logOut" class="dropdown-item">
+                        Wyloguj
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>
