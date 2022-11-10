@@ -1,0 +1,30 @@
+{% extends "bootstrap/base.html" %}
+{% block title %} {{ title }} {% endblock %}
+{% block navbar %}
+    {% if userLogin %}
+        {% include "includes/navbarlogin.html" %}
+    {% else %}
+        {% include "includes/navbar.html" %}
+    {% endif %}
+{% endblock %}
+{% block content %}
+    <div class="container">
+        {% if userLogin %}
+            <h1>Jesteś zalogowany jako {{ userLogin }}</h1>
+        {% else %}
+        <div class="row">
+          <div class="col-lg-4 offset-lg-4">
+            <form action="/login" method="post">
+            {{ login.hidden_tag() }}
+            {{ login.userLogin.label(class_="form-label") }}
+            {{ login.userLogin(class_="form-control") }}
+            {{ login.userPass.label(class_="form-label") }}
+            {{ login.userPass(class_="form-control") }}
+            {{ login.submit(class_="btn btn-dark mt-3 float-end") }}
+            </form>
+          </div>
+        {% endif %}
+        </div>
+    </div>
+{% include "includes/footer.html" %}
+{% endblock %}

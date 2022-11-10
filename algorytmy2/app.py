@@ -39,7 +39,12 @@ def logIn():
     if login.validate_on_submit():
         userLogin = login.userLogin.data
         userPass = login.userPass.data
-        if userLogin == users[1]['userLogin'] and userPass == users[1]['userPass']:
+        connection = sqlite3.connect('data/alg-db')
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT userLogin FROM users WHERE userLOGIN='{userLogin}' AND userPASS='{userPass}'")
+        user = cursor.fetchone()
+        connection.close()
+        if user:
             session['userLogin'] = userLogin
             return redirect('dashboard')
     return render_template('login.html', title='logowanie', login=login, userLogin=session.get('userLogin'))
@@ -47,16 +52,20 @@ def logIn():
 
 @app.route('/dashboard')
 def dashboard():
-    with open('data/algoritms.json', encoding='utf-8') as algorithmsFile:
-        algorithms = json.load(algorithmsFile)
-        algorithmsFile.close()
+    connection = sqlite3.connect('data/alg-db')
+    cursor = connection.cursor()
+    cursor.execute(f"SELECT * FROM categories")
+    categories = cursor.fetchall()
+    connection.close()
     return render_template('dashboard.html', title='Dashboard', userLogin=session.get('userLogin'),
-                           fname=users[1]['fname'], algorithms=algorithms)
+                           fname=users[1]['fname'], categories=categories)
+
 
 @app.route('/logOut')
 def logOut():
     session.pop('userLogin')
     return redirect('login')
+
 
 @app.route('/content')
 def content():

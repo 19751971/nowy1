@@ -1,0 +1,20 @@
+{
+  "1": {
+    "Podstawy algorytmiki": {
+      "Wstęp do algorytmiki": {
+        "Pojęcie algorytmu": "1",
+        "Etapy rozwiązywania zadań za pomocą komputera": "2",
+        "Sposoby reprezentowania algorytmów": "3"
+      },
+      "Ćwiczenia w zapisie prostych algorytmów": {
+        "Algorytmy liniowe": "4",
+        "Algorytmy z warunkami": "5",
+        "Iteracja": "6",
+        "Rekurencja": "7",
+        "Metoda \"dziel i zwyciężaj\"": "8",
+        "Programowanie zachłanne": "9",
+        "Kryptografia i kryptoanaliza. Metody szyfrowania": "10"
+      }
+    }
+  }
+}
