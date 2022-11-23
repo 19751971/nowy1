@@ -44,27 +44,60 @@ def logIn():
         cursor.execute(f"SELECT userLogin FROM users WHERE userLOGIN='{userLogin}' AND userPASS='{userPass}'")
         user = cursor.fetchone()
         connection.close()
-        if user:
+        if user and session.get('categoryId'):
+            session['userLogin'] = userLogin
+            return redirect('dashboard?id=' + session.get('categoryId'))
+        else:
             session['userLogin'] = userLogin
             return redirect('dashboard')
     return render_template('login.html', title='logowanie', login=login, userLogin=session.get('userLogin'))
 
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET'])
 def dashboard():
+    id = request.args.get('id')
+    session['categoryId'] = id
     connection = sqlite3.connect('data/alg-db')
     cursor = connection.cursor()
-    cursor.execute(f"SELECT * FROM categories")
-    categories = cursor.fetchall()
+    if str(id) == "None":
+        cursor.execute(f"SELECT * FROM categories")
+        categories = cursor.fetchall()
+        return render_template('dashboard.html', title='Dashboard', userLogin=session.get('userLogin'),
+                               fname=users[1]['fname'], categories=categories, id=session.get('categoryId'))
+    else:
+        cursor.execute("SELECT * FROM categories WHERE id = {}".format(session.get('categoryId')))
+        categories = cursor.fetchall()
+
     connection.close()
     return render_template('dashboard.html', title='Dashboard', userLogin=session.get('userLogin'),
-                           fname=users[1]['fname'], categories=categories)
+                           fname=users[1]['fname'], categories=categories, id=session.get('categoryId'))
 
 
 @app.route('/logOut')
 def logOut():
     session.pop('userLogin')
+    session.pop('categoryId')
     return redirect('login')
+    id = request.args.get('id')
+    session['categoryId'] = id
+    connection = sqlite3.connect('data/alg-db')
+    cursor = connection.cursor()
+    if not id:
+        cursor.execute(f"SELECT * FROM categories")
+        categories = cursor.fetchall()
+        return render_template('dashboard.html', title='Dashboard', userLogin=session.get('userLogin'),
+                               categories=categories, id=session.get('categoryId'), firstName=session.get('firstName'))
+    else:
+        cursor.execute("SELECT * FROM categories WHERE id = {}".format(session.get('categoryId')))
+        categories = cursor.fetchall()
+        cursor.execute("SELECT * FROM subjects WHERE category = {}".format(session.get('categoryId')))
+        subjects = cursor.fetchall()
+        cursor.execute("SELECT * FROM topics")
+        topics = cursor.fetchall()
+    connection.close()
+    return render_template('dashboard.html', title='Dashboard', userLogin=session.get('userLogin'),
+                           categories=categories,
+                           id=id, firstName=session.get('firstName'), subjects=subjects, topics=topics)
 
 
 @app.route('/content')

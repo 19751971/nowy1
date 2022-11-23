@@ -14,19 +14,56 @@
 {% block content %}
     <div class="container mt-2 pb-2">
     {% if userLogin %}
-        <div class="d-flex align-items-center p-2 my-2 text-muted bg-primary bg-opacity-10 rounded shadow-sm">
+        {% if id == None %}
+            <div class="row">
+                {% for category in categories %}
+                    <div class="list-group col-lg-6 my-2">
+                        <a href="/dashboard?id={{ category[0] }}" class="list-group-item list-group-item-action list-group-item-secondary py-5 text-center h4">
+                            {{ category[1] }}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="d-flex align-items-center p-2 my-2 text-muted bg-primary bg-opacity-10 rounded shadow-sm">
             <i class="bi bi-diagram-3 pe-3 h2"></i>
             <div class="lh-1">
                 <h1 class="h5 mb-0 text-muted lh-1">
-                    {{ categories }}
+                    {% for category in categories %}
+                        {{ category[1] }}
+                    {% endfor %}
                 </h1>
             </div>
-        </div>
+            {% for subject in subjects %}
+                    <div class="my-3 p-3 bg-body rounded shadow-sm">
+                        <h6 class="border-bottom pb-2 mb-0 text-muted">{{ subject[1] }}</h6>
+                        {% for topic in topics %}
+                        {% if topic[2] == subject[0] %}
+                            <div class="d-flex text-muted pt-3">
+                                <i class="bi bi-square-fill ps-3 pe-2 text-danger"></i>
+                                <div class="pb-0 mb-0 small lh-sm border-bottom w-100">
+                                    <div class="pb-2 w-100 border-bottom">
+                                        <div class="d-flex justify-content-between">
+                                            <strong class="text-gray-dark">{{ topic[1] }}</strong>
+                                            <a href="/content?id={{ topic[0] }}"
+                                               class="text-decoration-none text-primary">
+                                                Zobacz
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
-{#        {% for id, headers in algorithms.items() %}#}
-{#            {% for header, topics in headers.items() %}#}
-{#                {% for topic, subjects in topics.items() %}#}
-{#                    <div class="my-3 p-3 bg-body rounded shadow-sm">#}
+{#        {% for id, headers in algorithms.items() %}
+{#            {% for header, topics in headers.items() %}
+{#                {% for topic, subjects in topics.items() %}
+{#                    <div class="my-3 p-3 bg-body rounded shadow-sm">
 {#                        <h6 class="border-bottom pb-2 mb-0 text-muted">{{ topic }}</h6>#}
 {#                    {% for subject, id in subjects.items() %}#}
 {#                        <div class="d-flex text-muted pt-3">#}
@@ -51,7 +88,7 @@
     {% else %}
         <div class="alert alert-warning">
             Nie jestes zalogowany!
-            <a href="/logIn" class="alert-link">Przejdź do strony logowania</a>
+            <a href="/login" class="alert-link">Przejdź do strony logowania</a>
     {% endif %}
         </div>
     </div>
