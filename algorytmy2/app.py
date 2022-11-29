@@ -1,7 +1,7 @@
 import json
 import sqlite3
 
-from flask import Flask, render_template, session, redirect, request
+from flask import Flask, render_template, session, redirect, request, flash
 from flask_bs4 import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
@@ -41,16 +41,22 @@ def logIn():
         userPass = login.userPass.data
         connection = sqlite3.connect('data/alg-db')
         cursor = connection.cursor()
-        cursor.execute(f"SELECT userLogin FROM users WHERE userLOGIN='{userLogin}' AND userPASS='{userPass}'")
+        cursor.execute(f"SELECT userLogin, firstName FROM users WHERE userLogin='{userLogin}' AND userPass='{userPass}'")
         user = cursor.fetchone()
         connection.close()
-        if user and session.get('categoryId'):
-            session['userLogin'] = userLogin
-            return redirect('dashboard?id=' + session.get('categoryId'))
+        if user:
+            if user and session.get('categoryId'):
+                session['userLogin'] = userLogin
+                session['firstName'] = user[1]
+                return redirect('dashboard?id=' + session.get('categoryId'))
+            else:
+                session['userLogin'] = userLogin
+                session['firstName'] = user[1]
+                return redirect('dashboard')
         else:
-            session['userLogin'] = userLogin
-            return redirect('dashboard')
-    return render_template('login.html', title='logowanie', login=login, userLogin=session.get('userLogin'))
+            flash('Błędne dane logowania')
+    return render_template('login.html', title='logowanie', login=login, userLogin=session.get('userLogin'),
+                           firstName=session.get('firstName'))
 
 
 @app.route('/dashboard', methods=['GET'])
@@ -67,10 +73,14 @@ def dashboard():
     else:
         cursor.execute("SELECT * FROM categories WHERE id = {}".format(session.get('categoryId')))
         categories = cursor.fetchall()
+        cursor.execute("SELECT * FROM subjects WHERE category = {}".format(session.get('categoryId')))
+        subjects = cursor.fetchall()
+        cursor.execute("SELECT * FROM topics")
+        topics = cursor.fetchall()
 
     connection.close()
     return render_template('dashboard.html', title='Dashboard', userLogin=session.get('userLogin'),
-                           fname=users[1]['fname'], categories=categories, id=session.get('categoryId'))
+                           fname=users[1]['fname'], categories=categories, id=session.get('categoryId'), subjects=subjects, topics=topics)
 
 
 @app.route('/logOut')
@@ -100,17 +110,17 @@ def logOut():
                            id=id, firstName=session.get('firstName'), subjects=subjects, topics=topics)
 
 
-@app.route('/content')
+@app.route('/content', methods=['GET'])
 def content():
     id = request.args.get('id')
     subject = request.args.get('subject')
-    connection = sqlite3.connect('data/alg-contents')
+    connection = sqlite3.connect('data/alg-db')
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM contents WHERE id=" + id)
+    cursor.execute("SELECT * FROM contents INNER JOIN topics ON topics.id = contents.id WHERE contents.id = " + id)
     contents = cursor.fetchall()
     connection.close()
     return render_template('content.html', title=subject, userLogin=session.get('userLogin'),
-                           fname=users[1]['fname'], contents=contents)
+                           firstName=session.get('firstName'), contents=contents)
 
 
 if __name__ == '__main__':
