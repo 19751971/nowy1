@@ -1,6 +1,6 @@
 import json
 import sqlite3
-
+import hashlib
 from flask import Flask, render_template, session, redirect, request, flash
 from flask_bs4 import Bootstrap
 from flask_wtf import FlaskForm
@@ -12,10 +12,17 @@ bootstrap = Bootstrap(app)
 app.config['SECRET_KEY'] = 'sfguw479g49w78ytgyw54989fgw937f'
 
 
+# klasy formularzy
 class LoginForm(FlaskForm):
     userLogin = StringField('Nazwa użytkownika: ', validators=[DataRequired()])
     userPass = PasswordField('Hasło: ', validators=[DataRequired()])
     submit = SubmitField('Zaloguj')
+
+
+class AddCategory(FlaskForm):
+    """" Formularz dodawania kategorii """
+    category = StringField('Nazwa kategorii: ', validators=[DataRequired()])
+    submit = SubmitField('Dodaj')
 
 
 users = {
@@ -38,10 +45,12 @@ def logIn():
     login = LoginForm()
     if login.validate_on_submit():
         userLogin = login.userLogin.data
-        userPass = login.userPass.data
+        userPass = login.userPass.data.encode()
+        userPass = hashlib.sha256(userPass).hexdigest()
         connection = sqlite3.connect('data/alg-db')
         cursor = connection.cursor()
-        cursor.execute(f"SELECT userLogin, firstName FROM users WHERE userLogin='{userLogin}' AND userPass='{userPass}'")
+        cursor.execute(
+            f"SELECT userLogin, firstName FROM users WHERE userLogin='{userLogin}' AND userPass='{userPass}'")
         user = cursor.fetchone()
         connection.close()
         if user:
@@ -80,7 +89,8 @@ def dashboard():
 
     connection.close()
     return render_template('dashboard.html', title='Dashboard', userLogin=session.get('userLogin'),
-                           fname=users[1]['fname'], categories=categories, id=session.get('categoryId'), subjects=subjects, topics=topics)
+                           fname=users[1]['fname'], categories=categories, id=session.get('categoryId'),
+                           subjects=subjects, topics=topics)
 
 
 @app.route('/logOut')
@@ -121,6 +131,22 @@ def content():
     connection.close()
     return render_template('content.html', title=subject, userLogin=session.get('userLogin'),
                            firstName=session.get('firstName'), contents=contents)
+
+
+@app.route('/addCategory', methods=['POST', 'GET'])
+def addCategory():
+    addCategoryForm = AddCategory()
+    category = addCategoryForm.category.data
+    if request.method == 'POST':
+        connection = sqlite3.connect('data/alg-db')
+        cursor = connection.cursor()
+        cursor.execute(f"INSERT INTO categories (category) VALUES (?)", (category,))
+        connection.commit()
+        connection.close()
+        flash('Dane zapisane poprawnie!')
+        return redirect('addCategory')
+    return render_template('add-category.html', title='Dodaj kategorię', userLogin=session.get('userLogin'),
+                           firstname=session.get('firstName'), addCategoryForm=addCategoryForm)
 
 
 if __name__ == '__main__':
