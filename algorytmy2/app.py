@@ -4,7 +4,7 @@ import hashlib
 from flask import Flask, render_template, session, redirect, request, flash
 from flask_bs4 import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired
 
 app = Flask(__name__)
@@ -22,6 +22,12 @@ class LoginForm(FlaskForm):
 class AddCategory(FlaskForm):
     """" Formularz dodawania kategorii """
     category = StringField('Nazwa kategorii: ', validators=[DataRequired()])
+    submit = SubmitField('Dodaj')
+
+
+class AddSubject(FlaskForm):
+    category = SelectField('Wybierz kategorię:', choices=str)
+    subject = StringField('Nazwa działu:', validators=[DataRequired()])
     submit = SubmitField('Dodaj')
 
 
@@ -147,6 +153,29 @@ def addCategory():
         return redirect('addCategory')
     return render_template('add-category.html', title='Dodaj kategorię', userLogin=session.get('userLogin'),
                            firstname=session.get('firstName'), addCategoryForm=addCategoryForm)
+
+
+@app.route('/addSubject', methods=['POST', 'GET'])
+def addSubject():
+    addSubjectForm = AddSubject()
+    connection = sqlite3.connect('data/alg-db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM categories ")
+    categories = cursor.fetchall()
+    connection.close()
+    addSubjectForm.category.choices = [category for category in categories]
+    category = addSubjectForm.category.data
+    subject = addSubjectForm.subject.data
+    if request.method == 'POST':
+        connection = sqlite3.connect('data/alg-db')
+        cursor = connection.cursor()
+        cursor.execute(f"INSERT INTO subjects (subject, category) VALUES (?,?)", (subject, category))
+        connection.commit()
+        connection.close()
+        flash('Dane zapisane poprawnie!')
+        return redirect('addSubject')
+    return render_template('add-subject.html', title='Dodaj dział', userLogin=session.get('userLogin'),
+                           firstname=session.get('firstName'), addSubjectForm=addSubjectForm)
 
 
 if __name__ == '__main__':
