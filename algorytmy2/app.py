@@ -4,7 +4,7 @@ import hashlib
 from flask import Flask, render_template, session, redirect, request, flash
 from flask_bs4 import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField
 from wtforms.validators import DataRequired
 
 app = Flask(__name__)
@@ -30,6 +30,14 @@ class AddSubject(FlaskForm):
     subject = StringField('Nazwa działu:', validators=[DataRequired()])
     submit = SubmitField('Dodaj')
 
+
+class AddContent(FlaskForm):
+    """Formularz dodawania treści"""
+    category = SelectField('Wybierz kategorię:', choices=str)
+    subject = SelectField('Wybierz kategorię:', choices=str)
+    topic = StringField("Tytuł:", validators=[DataRequired()])
+    content = TextAreaField('Treść:', validators=[DataRequired()])
+    submit = SubmitField('Dodaj')
 
 users = {
     1: {
@@ -176,6 +184,33 @@ def addSubject():
         return redirect('addSubject')
     return render_template('add-subject.html', title='Dodaj dział', userLogin=session.get('userLogin'),
                            firstname=session.get('firstName'), addSubjectForm=addSubjectForm)
+
+
+@app.route('/addContent', methods=['POST', 'GET'])
+def addContent():
+    addContentForm = AddContent()
+    connection = sqlite3.connect('data/alg-db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM categories ")
+    categories = cursor.fetchall()
+    addContentForm.category.choices = [category for category in categories]
+    cursor.execute("SELECT id, subject FROM subjects")
+    subjects = cursor.fetchall()
+    addContentForm.subject.choices = [subject for subject in subjects]
+    connection.close()
+    if request.method == 'POST':
+        category = addContentForm.category.data
+        subject = addContentForm.subject.data
+        topic = addContentForm.topic.data
+        content = addContentForm.content.data
+        connection = sqlite3.connect('data/alg-db')
+        cursor = connection.cursor()
+        cursor.execute(f"INSERT INTO topics (topic, subject) VALUES (?,?)", (topic, subject,))
+        cursor.execute()
+        connection.commit()
+        connection.close()
+    return render_template('add-content.html', title='Dodaj zawartość', userLogin=session.get('userLogin'),
+                           firstname=session.get('firstName'), addContentForm=addContentForm)
 
 
 if __name__ == '__main__':
