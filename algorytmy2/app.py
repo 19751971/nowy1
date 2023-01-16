@@ -140,7 +140,7 @@ def content():
     subject = request.args.get('subject')
     connection = sqlite3.connect('data/alg-db')
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM contents INNER JOIN topics ON topics.id = contents.id WHERE contents.id = " + id)
+    cursor.execute(f"SELECT * FROM contents INNER JOIN topics ON topics.id = contents.topic WHERE contents.topic = {id}")
     contents = cursor.fetchall()
     connection.close()
     return render_template('content.html', title=subject, userLogin=session.get('userLogin'),
@@ -206,9 +206,14 @@ def addContent():
         connection = sqlite3.connect('data/alg-db')
         cursor = connection.cursor()
         cursor.execute(f"INSERT INTO topics (topic, subject) VALUES (?,?)", (topic, subject,))
-        cursor.execute()
+        connection.commit()
+        cursor.execute(f"SELECT id FROM topics WHERE topic='{topic}' AND subject={subject}")
+        topicId = cursor.fetchone()
+        cursor.execute(f"INSERT INTO contents (content, topic) VALUES (?,?)", (content, topicId[0],))
         connection.commit()
         connection.close()
+        flash("Dane zapisane poprawnie!")
+        return redirect("addContent")
     return render_template('add-content.html', title='Dodaj zawartość', userLogin=session.get('userLogin'),
                            firstname=session.get('firstName'), addContentForm=addContentForm)
 
